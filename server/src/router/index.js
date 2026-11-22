@@ -49,12 +49,12 @@ router.post('/dataForContest', contestController.dataForContest);
 //   contestController.getContestById
 // );
 
-router.post(
-  '/getAllContests',
+// router.post(
+//   '/getAllContests',
 
-  basicMiddlewares.onlyForCreative,
-  contestController.getContests
-);
+//   basicMiddlewares.onlyForCreative,
+//   contestController.getContests
+// );
 
 router.get(
   '/downloadFile/:fileName',
