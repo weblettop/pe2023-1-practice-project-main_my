@@ -35,7 +35,7 @@ router.post('/dataForContest', contestController.dataForContest);
 //   validators.validateContestCreation,
 //   userController.payment
 // );
-router.use('/contests', contestsRouter);
+
 // router.post(
 //   '/getCustomersContests',
 //   checkToken.checkToken,
@@ -55,8 +55,6 @@ router.post(
   basicMiddlewares.onlyForCreative,
   contestController.getContests
 );
-
-router.post('/getUser', checkToken.checkAuth);
 
 router.get(
   '/downloadFile/:fileName',
