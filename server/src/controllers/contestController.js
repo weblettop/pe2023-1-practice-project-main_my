@@ -27,7 +27,7 @@ module.exports.dataForContest = async (req, res, next) => {
     if (!characteristics) {
       return next(new ServerError());
     }
-    characteristics.forEach(characteristic => {
+    characteristics.forEach((characteristic) => {
       if (!response[characteristic.type]) {
         response[characteristic.type] = [];
       }
@@ -41,9 +41,13 @@ module.exports.dataForContest = async (req, res, next) => {
 };
 
 module.exports.getContestById = async (req, res, next) => {
+  const {
+    params: { contestId },
+    tokenData: { userId, role },
+  } = req;
   try {
     let contestInfo = await db.Contests.findOne({
-      where: { id: req.headers.contestid },
+      where: { id: contestId },
       order: [[db.Offers, 'id', 'asc']],
       include: [
         {
@@ -56,10 +60,7 @@ module.exports.getContestById = async (req, res, next) => {
         {
           model: db.Offers,
           required: false,
-          where:
-            req.tokenData.role === CONSTANTS.CREATOR
-              ? { userId: req.tokenData.userId }
-              : {},
+          where: role === CONSTANTS.CREATOR ? { userId } : {},
           attributes: { exclude: ['userId', 'contestId'] },
           include: [
             {
@@ -72,7 +73,7 @@ module.exports.getContestById = async (req, res, next) => {
             {
               model: db.Ratings,
               required: false,
-              where: { userId: req.tokenData.userId },
+              where: { userId },
               attributes: { exclude: ['userId', 'offerId'] },
             },
           ],
@@ -80,7 +81,7 @@ module.exports.getContestById = async (req, res, next) => {
       ],
     });
     contestInfo = contestInfo.get({ plain: true });
-    contestInfo.Offers.forEach(offer => {
+    contestInfo.Offers.forEach((offer) => {
       if (offer.Rating) {
         offer.mark = offer.Rating.mark;
       }
@@ -166,11 +167,11 @@ const resolveOffer = async (
     {
       status: db.sequelize.literal(`   CASE
             WHEN "id"=${contestId}  AND "orderId"='${orderId}' THEN '${
-        CONSTANTS.CONTEST_STATUS_FINISHED
-      }'
+              CONSTANTS.CONTEST_STATUS_FINISHED
+            }'
             WHEN "orderId"='${orderId}' AND "priority"=${priority + 1}  THEN '${
-        CONSTANTS.CONTEST_STATUS_ACTIVE
-      }'
+              CONSTANTS.CONTEST_STATUS_ACTIVE
+            }'
             ELSE '${CONSTANTS.CONTEST_STATUS_PENDING}'
             END
     `),
@@ -198,7 +199,7 @@ const resolveOffer = async (
   );
   transaction.commit();
   const arrayRoomsId = [];
-  updatedOffers.forEach(offer => {
+  updatedOffers.forEach((offer) => {
     if (
       offer.status === CONSTANTS.OFFER_STATUS_REJECTED &&
       creatorId !== offer.userId
@@ -252,10 +253,14 @@ module.exports.setOfferStatus = async (req, res, next) => {
 };
 
 module.exports.getCustomersContests = (req, res, next) => {
+  const {
+    query: { contestStatus: status, limit, offset },
+    tokenData: { userId },
+  } = req;
   db.Contests.findAll({
-    where: { status: req.headers.status, userId: req.tokenData.userId },
-    limit: req.body.limit,
-    offset: req.body.offset ? req.body.offset : 0,
+    where: { status, userId },
+    limit,
+    offset: offset ? offset : 0,
     order: [['id', 'DESC']],
     include: [
       {
@@ -265,9 +270,10 @@ module.exports.getCustomersContests = (req, res, next) => {
       },
     ],
   })
-    .then(contests => {
+    .then((contests) => {
       contests.forEach(
-        contest => (contest.dataValues.count = contest.dataValues.Offers.length)
+        (contest) =>
+          (contest.dataValues.count = contest.dataValues.Offers.length)
       );
       let haveMore = true;
       if (contests.length === 0) {
@@ -275,7 +281,7 @@ module.exports.getCustomersContests = (req, res, next) => {
       }
       res.send({ contests, haveMore });
     })
-    .catch(err => next(new ServerError(err)));
+    .catch((err) => next(new ServerError(err)));
 };
 
 module.exports.getContests = (req, res, next) => {
@@ -299,9 +305,10 @@ module.exports.getContests = (req, res, next) => {
       },
     ],
   })
-    .then(contests => {
+    .then((contests) => {
       contests.forEach(
-        contest => (contest.dataValues.count = contest.dataValues.Offers.length)
+        (contest) =>
+          (contest.dataValues.count = contest.dataValues.Offers.length)
       );
       let haveMore = true;
       if (contests.length === 0) {
@@ -309,7 +316,7 @@ module.exports.getContests = (req, res, next) => {
       }
       res.send({ contests, haveMore });
     })
-    .catch(err => {
+    .catch((err) => {
       next(new ServerError());
     });
 };
