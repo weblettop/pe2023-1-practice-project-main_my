@@ -29,4 +29,10 @@ contestsRouter.get(
   contestController.getContestById
 );
 
+contestsRouter.get(
+  '/',
+  basicMiddlewares.onlyForCreative,
+  contestController.getContests
+);
+
 module.exports = contestsRouter;
